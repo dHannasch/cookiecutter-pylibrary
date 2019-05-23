@@ -23,7 +23,7 @@ matrix:
     - python: '{{ "{0[2]}.{0[3]}".format(env) }}'
 {%- endif %}
       env:
-        - TOXENV={{ env }}{% if cookiecutter.test_matrix_separate_coverage == 'yes' %}-cover{% endif %},report
+        - TOXENV={{ env }}{% if cookiecutter.test_matrix_separate_coverage == 'yes' %}-cover{% endif %}
       {%- if cookiecutter.coveralls == 'yes' %}
         {%- if cookiecutter.c_extension_support != "no" %},extension-coveralls{% endif %},coveralls
       {%- endif %}
