@@ -26,7 +26,7 @@ Overview
 {{ '' }}
     * - package
       - | |version| |wheel| |supported-versions| |supported-implementations|
-{%- if cookiecutter.repo_hosting == "github" %}
+{%- if cookiecutter.repo_hosting == "github.com" %}
         | |commits-since|
 {%- endif %}
 {{ '' }}
@@ -78,10 +78,10 @@ Overview
 .. |version| image:: https://img.shields.io/pypi/v/{{ cookiecutter.distribution_name }}.svg
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/{{ cookiecutter.distribution_name }}
-{% if cookiecutter.repo_hosting == "github" %}
+{% if cookiecutter.repo_hosting == "github.com" %}
 .. |commits-since| image:: https://img.shields.io/{{ cookiecutter.repo_hosting }}/commits-since/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/v{{ cookiecutter.version }}.svg
     :alt: Commits since latest release
-    :target: https://{{ cookiecutter.repo_hosting }}.com/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/compare/v{{ cookiecutter.version }}...master
+    :target: https://{{ cookiecutter.repo_hosting }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/compare/v{{ cookiecutter.version }}...master
 {% endif %}
 .. |wheel| image:: https://img.shields.io/pypi/wheel/{{ cookiecutter.distribution_name }}.svg
     :alt: PyPI Wheel
