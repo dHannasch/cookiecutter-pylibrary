@@ -1,7 +1,7 @@
-#!/bin/bash -eE
+#!/bin/bash -eux
 shopt -s xpg_echo
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
     echo Usage:
     echo    $0 env-name
     exit 1
@@ -25,7 +25,7 @@ cookiecutter --no-input --config-file=ci/envs/$1.cookiecutterrc .
 cd python-nameless
 git init .
 git add -A .
-git commit -m "initial."
+git commit -m "Initial."
 bumpversion patch
 bumpversion minor
 bumpversion major

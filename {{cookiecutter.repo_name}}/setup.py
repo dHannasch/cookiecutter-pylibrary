@@ -85,9 +85,23 @@ class optional_build_ext(build_ext):
 {% endif -%}
 setup(
     name='{{ cookiecutter.distribution_name }}',
+{%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
+    use_scm_version={
+        'local_scheme': 'dirty-tag',
+        'write_to': 'src/{{ cookiecutter.package_name }}/_version.py',
+        'fallback_version': '{{ cookiecutter.version }}',
+    },
+{%- else %}
     version='{{ cookiecutter.version }}',
+{%- endif %}
 {%- if cookiecutter.license != "no" %}
-    license='{{ cookiecutter.license }}',
+    license='{{ {
+        "BSD 2-Clause License": "BSD-2-Clause",
+        "BSD 3-Clause License": "BSD-3-Clause",
+        "MIT license": "MIT",
+        "ISC license": "ISC",
+        "Apache Software License 2.0": "Apache-2.0"}[cookiecutter.license]
+    }}',
 {%- endif %}
     description={{ '{0!r}'.format(cookiecutter.project_short_description).lstrip('ub') }},
     long_description='%s\n%s' % (
@@ -135,6 +149,9 @@ setup(
         # 'Programming Language :: Python :: Implementation :: Jython',
         # 'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Utilities',
+{%- if cookiecutter.repo_hosting == "no" %}
+        'Private :: Do Not Upload',
+{%- endif %}
     ],
 {%- if cookiecutter.repo_hosting != "no" %}
     project_urls={
@@ -147,7 +164,6 @@ setup(
         'Issue Tracker': 'https://{{ cookiecutter.repo_hosting }}.com/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/issues',
     },
 {%- endif %}
-
     keywords=[
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
@@ -167,11 +183,26 @@ setup(
         #   'rst': ['docutils>=0.11'],
         #   ':python_version=="2.6"': ['argparse'],
     },
+{%- if cookiecutter.test_runner == 'pytest' and cookiecutter.setup_py_uses_test_runner == 'yes' -%}
+{% set setup_requires_from_test_runner %}
+        'pytest-runner',{% endset %}
+{%- else -%}
+{% set setup_requires_from_test_runner %}{% endset %}
+{%- endif -%}
 {%- if cookiecutter.c_extension_support == 'cython' %}
-    setup_requires=[
+    setup_requires=[{{ setup_requires_from_test_runner }}
         'cython',
-    ] if Cython else [],
-{%- endif %}
+    ] if Cython else [{{ setup_requires_from_test_runner }}
+    ],
+{%- elif cookiecutter.c_extension_support == 'cffi' %}
+    setup_requires=[{{ setup_requires_from_test_runner }}
+        'cffi>=1.0.0',
+    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [{{setup_requires_from_test_runner}}
+    ],
+{%- else %}
+    setup_requires=[{{ setup_requires_from_test_runner }}
+    ],
+{%- endif -%}
 {%- if cookiecutter.command_line_interface != 'no' %}
     entry_points={
         'console_scripts': [
@@ -184,9 +215,6 @@ setup(
     cmdclass={'build_ext': optional_build_ext},
 {%- endif %}
 {%- if cookiecutter.c_extension_support == 'cffi' %}
-    setup_requires=[
-        'cffi>=1.0.0',
-    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [],
     cffi_modules=[i + ':ffi' for i in glob('src/*/_*_build.py')],
 {%- else %}
     ext_modules=[

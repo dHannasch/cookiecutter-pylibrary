@@ -10,12 +10,15 @@ from os.path import join
 try:
     from click.termui import secho
 except ImportError:
-    warn = print
+    warn = note = print
 else:
     def warn(text):
         for line in text.splitlines():
             secho(line, fg="white", bg="red", bold=True)
 
+    def note(text):
+        for line in text.splitlines():
+            secho(line, fg="yellow", bold=True)
 
 def replace_contents(filename, what, replacement):
     with open(filename) as fh:
@@ -24,6 +27,30 @@ def replace_contents(filename, what, replacement):
         fh.write(changelog.replace(what, replacement))
 
 if __name__ == "__main__":
+{%- if cookiecutter.c_extension_test_pypi == 'yes' %}
+{%- if cookiecutter.test_matrix_separate_coverage == 'no' %}
+    warn("TODO: c_extension_test_pypi=yes will not work with test_matrix_separate_coverage=no for now.")
+    sys.exit(1)
+{%- endif %}
+{%- if cookiecutter.c_extension_support == 'no' %}
+    warn("""
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!                                                                            !!
+!!      ERROR:                                                                !!
+!!                                                                            !!
+!!          c_extension_test_pypi=yes is designed to build and publish        !!
+!!          platform-specific wheels.                                         !!
+!!                                                                            !!
+!!          You have set c_extension_support=no, and that will make every     !!
+!!          test environment publish duplicated universal wheels.             !!
+!!                                                                            !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+""")
+    sys.exit(1)
+{%- endif %}
+{%- endif %}
+
+
     today = datetime.date.today()
     replace_contents('CHANGELOG.rst', '<TODAY>', today.strftime("%Y-%m-%d"))
     replace_contents(join('docs', 'conf.py'), '<YEAR>', today.strftime("%Y"))
@@ -40,6 +67,9 @@ if __name__ == "__main__":
 
 {%- if cookiecutter.test_matrix_configurator == 'no' %}
     os.unlink(join('ci', 'templates', 'tox.ini'))
+{% endif %}
+{%- if cookiecutter.allow_tests_inside_package == 'no' %}
+    shutil.rmtree(join('src', '{{ cookiecutter.package_name }}', 'tests'))
 {% endif %}
 
 {%- if cookiecutter.c_extension_support == 'no' %}
@@ -61,18 +91,33 @@ if __name__ == "__main__":
 {%- endif %}
 
 {%- if cookiecutter.appveyor == 'no' %}
-    os.unlink(join('ci', 'appveyor-bootstrap.py'))
     os.unlink(join('ci', 'appveyor-download.py'))
     os.unlink(join('ci', 'appveyor-with-compiler.cmd'))
-    os.unlink(join('ci', 'templates', 'appveyor.yml'))
+    os.unlink(join('ci', 'templates', '.appveyor.yml'))
+    if os.path.exists('.appveyor.yml'):
+        os.unlink('.appveyor.yml')
+{% endif %}
     if os.path.exists('appveyor.yml'):
         os.unlink('appveyor.yml')
-{% endif %}
+    if os.path.exists(join('ci', 'appveyor-bootstrap.py')):
+        os.unlink(join('ci', 'appveyor-bootstrap.py'))
 
 {%- if cookiecutter.travis == 'no' %}
     os.unlink(join('ci', 'templates', '.travis.yml'))
     if os.path.exists('.travis.yml'):
         os.unlink('.travis.yml')
+{% endif %}
+
+{%- if cookiecutter.repo_hosting == 'no' %}
+    os.unlink('CONTRIBUTING.rst')
+{% endif %}
+
+{%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
+    os.unlink('MANIFEST.in')
+{% endif %}
+
+{%- if cookiecutter.license == "no" %}
+    os.unlink('LICENSE')
 {% endif %}
 
     print("""
@@ -115,9 +160,9 @@ if __name__ == "__main__":
         git push -u origin master
 
 {% if cookiecutter.test_matrix_configurator == "yes" %}
-    To regenerate your tox.ini, .travis.yml or appveyor.yml run:
+    To regenerate your tox.ini, .travis.yml or .appveyor.yml run:
 {% else %}
-    To regenerate your .travis.yml or appveyor.yml run:
+    To regenerate your .travis.yml or .appveyor.yml run:
 {% endif %}
 
         tox -e bootstrap
@@ -125,7 +170,20 @@ if __name__ == "__main__":
     You can also run:
 
         ./ci/bootstrap.py
+
 """)
+
+{%- if cookiecutter.c_extension_test_pypi == 'yes' %}
+    note("""
+NOTE:
+
+    You are using the c_extension_test_pypi option.
+
+    Make sure you are setting TWINE_PASSWORD as a secret env variable in CI settings:
+    - https://ci.appveyor.com/project/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/settings/environment
+    - https://travis-ci.org/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/settings
+""")
+{%- endif %}
 
     command_line_interface_bin_name = '{{ cookiecutter.command_line_interface_bin_name }}'
     while command_line_interface_bin_name.endswith('.py'):
@@ -135,7 +193,7 @@ if __name__ == "__main__":
             warn("""
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!                                                                            !!
-!!      WARNING:                                                              !!
+!!      ERROR:                                                                !!
 !!                                                                            !!
 !!          Your result package is broken. Your bin script named              !!
 !!          {0} !!
@@ -155,4 +213,5 @@ if __name__ == "__main__":
 """.format(
                 '"{{ cookiecutter.command_line_interface_bin_name }}" will shadow your package.'.ljust(65),
                 '(not "{0}").'.format(command_line_interface_bin_name).ljust(32)))
+            sys.exit(1)
         break
