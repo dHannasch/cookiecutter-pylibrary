@@ -7,7 +7,7 @@ variables:
   HTTPS_PROXY: {{cookiecutter.ci_https_proxy}}
   # If we don't include NO_PROXY, we will get "fatal unable to update url base from redirection"
   # when trying to fetch the gitlab-ci-token.
-  NO_PROXY: 127.0.0.1,localhost,/var/run/docker.sock,{{cookiecutter.repo_hosting}}
+  NO_PROXY: 127.0.0.1,localhost,.lan,.local,.home,/var/run/docker.sock,{{cookiecutter.repo_hosting}}
 
 pages:
   script:
