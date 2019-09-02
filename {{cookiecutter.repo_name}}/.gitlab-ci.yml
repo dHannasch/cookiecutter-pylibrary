@@ -8,6 +8,13 @@ variables:
   # If we don't include NO_PROXY, we will get "fatal unable to update url base from redirection"
   # when trying to fetch the gitlab-ci-token.
   NO_PROXY: 127.0.0.1,localhost,.lan,.local,.home,/var/run/docker.sock,{{cookiecutter.repo_hosting}}
+  # If some of the links in your documentation require a special PEM to verify,
+  # then sphinx -b linkcheck will fail without that PEM.
+  # But setting REQUESTS_CA_BUNDLE to that PEM will cause other links to fail,
+  # because the runner will only accept that PEM, not the defaults.
+  # Therefore you will usually want to bundle all certificates together with
+  # cat `python -c "import requests; print(requests.certs.where())"` ~/your.pem > ~/bundled.pem
+  # REQUESTS_CA_BUNDLE: ci/name-of-your-ca-bundle.pem
 
 pages:
   script:
