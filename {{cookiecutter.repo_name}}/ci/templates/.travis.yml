@@ -94,6 +94,9 @@ install:
   - easy_install --version
   - pip --version
   - tox --version
+# The script is a YAML list. Each - is an entry in the list.
+# https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+# Spanning multiple lines using a Literal Block Scalar | will include the newlines and any trailing spaces.
 script:
 {%- if cookiecutter.c_extension_test_pypi == "yes" %}
   - |
