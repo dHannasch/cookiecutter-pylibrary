@@ -22,7 +22,7 @@ pages:
     # check-manifest, used in tox -e check, requires git.
   - pip3 install tox
   - git --version
-  - python --version
+  - python3 --version
   - virtualenv --version
   - pip3 --version
   - uname --all
