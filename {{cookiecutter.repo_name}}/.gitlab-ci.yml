@@ -21,6 +21,12 @@ pages:
   - apk add python3 git # probably do not want --no-cache
     # check-manifest, used in tox -e check, requires git.
   - pip3 install tox
+  - git --version
+  - python --version
+  - virtualenv --version
+  - pip3 --version
+  - uname --all
+  - lsb_release --all
   - tox
   - mv dist/docs/ public/
   artifacts:
