@@ -20,8 +20,8 @@ pages:
   script:
   - apk add python3 git # probably do not want --no-cache
     # check-manifest, used in tox -e check, requires git.
-  - pip3 install tox
   - pip3 install --upgrade pip
+  - pip3 install tox
   - git --version
   - python3 --version
   - virtualenv --version
