@@ -18,9 +18,9 @@ variables:
 
 pages:
   script:
-  - apk --no-cache add py2-pip python-dev
-  - pip install tox
-  - tox -e docs
+  - apk add python3 git # probably do not want --no-cache
+  - pip3 install tox
+  - tox
   - mv dist/docs/ public/
   artifacts:
     paths:
