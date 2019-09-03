@@ -1,5 +1,6 @@
 image: alpine
 
+{% if cookiecutter.ci_https_proxy != "no" -%}
 variables:
   # HTTP_PROXY is used to pull docker images.
   HTTP_PROXY: {{cookiecutter.ci_https_proxy}}
@@ -15,6 +16,7 @@ variables:
   # Therefore you will usually want to bundle all certificates together with
   # cat `python -c "import requests; print(requests.certs.where())"` ~/your.pem > ~/bundled.pem
   # REQUESTS_CA_BUNDLE: ci/name-of-your-ca-bundle.pem
+{%- endif %}
 
 pages:
   script:
