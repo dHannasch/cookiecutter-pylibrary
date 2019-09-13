@@ -91,7 +91,6 @@ if __name__ == "__main__":
 {%- endif %}
 
 {%- if cookiecutter.appveyor == 'no' %}
-    os.unlink(join('ci', 'appveyor-download.py'))
     os.unlink(join('ci', 'appveyor-with-compiler.cmd'))
     os.unlink(join('ci', 'templates', '.appveyor.yml'))
     if os.path.exists('.appveyor.yml'):
@@ -108,7 +107,7 @@ if __name__ == "__main__":
         os.unlink('.travis.yml')
 {% endif %}
 
-{%- if 'gitlab' not in cookiecutter.repo_hosting %}
+{%- if 'gitlab' not in cookiecutter.repo_hosting_domain %}
     os.unlink('.gitlab-ci.yml')
 {% endif %}
 
@@ -160,7 +159,7 @@ if __name__ == "__main__":
         git init
         git add --all
         git commit -m "Add initial project skeleton."
-        git remote add origin git@{{ cookiecutter.repo_hosting }}.com:{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}.git
+        git remote add origin git@{{ cookiecutter.repo_hosting }}:{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}.git
         git push -u origin master
 
 {% if cookiecutter.test_matrix_configurator == "yes" %}
