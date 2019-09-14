@@ -81,6 +81,7 @@ Overview
    :target: https://codeclimate.com/github/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}
    :alt: CodeClimate Quality Status
 {% endif %}
+{%- if cookiecutter.upload_to_pypi.upload_immediately_and_link_to_pypi == "yes" %}
 .. |version| image:: https://img.shields.io/pypi/v/{{ cookiecutter.distribution_name }}.svg
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/{{ cookiecutter.distribution_name }}
@@ -100,6 +101,7 @@ Overview
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/{{ cookiecutter.distribution_name }}.svg
     :alt: Supported implementations
     :target: https://pypi.org/project/{{ cookiecutter.distribution_name }}
+{% endif %}
 {% if cookiecutter.scrutinizer == 'yes' %}
 .. |scrutinizer| image:: https://img.shields.io/scrutinizer/quality/g/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/master.svg
     :alt: Scrutinizer Status
@@ -115,9 +117,16 @@ Overview
 Installation
 ============
 
+{% if cookiecutter.upload_to_pypi.upload_immediately_and_link_to_pypi == "no" %}If {{ cookiecutter.distribution_name }} has been uploaded to a devpi instance your pip is connected to, then you can install with{% endif -%}
 ::
 
     pip install {{ cookiecutter.distribution_name }}
+
+{% if 'git' in cookiecutter.repo_hosting -%}
+You can always install the bleeding-edge updates with::
+
+    pip install git+ssh://git@{{ cookiecutter.repo_hosting }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}.git@master
+{%- endif %}
 
 Documentation
 =============
