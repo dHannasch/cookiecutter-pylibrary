@@ -8,7 +8,7 @@ variables:
   HTTPS_PROXY: {{cookiecutter.ci_https_proxy}}
   # If we don't include NO_PROXY, we will get "fatal unable to update url base from redirection"
   # when trying to fetch the gitlab-ci-token.
-  NO_PROXY: 127.0.0.1,localhost,.lan,.local,.home,/var/run/docker.sock,{{cookiecutter.repo_hosting}}
+  NO_PROXY: 127.0.0.1,localhost,.lan,.local,.home,/var/run/docker.sock,{{cookiecutter.repo_hosting_domain}}
   # If some of the links in your documentation require a special PEM to verify,
   # then sphinx -b linkcheck will fail without that PEM.
   # But setting REQUESTS_CA_BUNDLE to that PEM will cause other links to fail,
@@ -22,7 +22,7 @@ default:
   before_script:
     - if [ -z ${SSH_PRIVATE_KEY+ABC} ]; then echo "SSH_PRIVATE_KEY is unset, so assuming you do not need SSH set up.";
       else
-    # All of this will be skipped unless you set SSH_PRIVATE_KEY as a variable at https://{{ cookiecutter.repo_hosting }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/-/settings/ci_cd
+    # All of this will be skipped unless you set SSH_PRIVATE_KEY as a variable at https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/-/settings/ci_cd
     {% raw -%}
     - if [ ${#SSH_PRIVATE_KEY} -le 5 ]; then echo "SSH_PRIVATE_KEY looks far too short, something is wrong"; fi
     {%- endraw %}
