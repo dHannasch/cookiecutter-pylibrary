@@ -1,7 +1,4 @@
 {
-    "full_name": "Ionel Cristian Maries",
-    "email": "contact@ionelmc.ro",
-    "website": "https://blog.ionelmc.ro",
     "project_name": "Nameless",
     "repo_name": "python-{{ cookiecutter.project_name|lower|replace(' ','-') }}",
     "repo_hosting": ["github.com", "gitlab.com", "other domain not listed"],
@@ -10,6 +7,9 @@
     "package_name": "{{ cookiecutter.project_name|lower|replace(' ','_')|replace('-','_') }}",
     "distribution_name": "{{ cookiecutter.package_name|replace('_','-') }}",
     "project_short_description": "An example package. Generated with cookiecutter-pylibrary.",
+    "full_name": "Ionel Cristian Maries",
+    "email": "contact@ionelmc.ro",
+    "website": "https://{{ repo_hosting_domain }}/{{ repo_username }}",
     "release_date": "today",
     "year_from": [
         "2019",
