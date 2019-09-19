@@ -1,4 +1,4 @@
-image: python:3.7-alpine
+image: dahanna/python.3.7-git-tox-alpine
 
 {% if cookiecutter.ci_https_proxy != "no" -%}
 variables:
@@ -57,14 +57,17 @@ default:
 
 pages:
   script:
-  - apk add git # probably do not want --no-cache
-    # check-manifest, used in tox -e check, requires git.
-  - pip3 install --upgrade pip
-  - pip3 install tox
+  # apk add any needed packages not included in the image.
+  # check-manifest, used in tox -e check, requires git,
+  # so we need to either use an image that includes git or
+  # apk add git here.
+  - pip install --upgrade pip
+  # If using an image that does not include tox, we will
+  # need to pip install tox here.
   - git --version
-  - python3 --version
+  - python --version
   - virtualenv --version
-  - pip3 --version
+  - pip --version
   - tox --version
   - uname --all
   - lsb_release --all || echo "lsb_release is not supported on this host."
