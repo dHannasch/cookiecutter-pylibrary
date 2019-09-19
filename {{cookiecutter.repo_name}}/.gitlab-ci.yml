@@ -55,7 +55,29 @@ default:
     #- git config --global user.email "{{ cookiecutter.email }}"
     #- git config --global user.name "{{ cookiecutter.full_name }}"
 
+# In general we want to use tox -e docs, but GitLab.com will not deploy Pages
+# if the pages build fails.
+# The pages build will fail if you use tox -e docs with a link to your GitLab
+# Pages documentation that is not yet deployed, because tox -e docs includes
+# sphinx-build -b linkcheck. So the pages will never get deployed...
+# That's why we deploy pages with no checks here.
+# The tests will still run linkcheck on the documentation.
 pages:
+  stage: build
+  # On GitLab, the stages are build->test->deploy.
+  # If the test stage fails, the deploy stage is skipped.
+  script:
+  - pip install -r docs/requirements.txt
+  - sphinx-build -E -b html docs dist/docs
+  - mv dist/docs/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
+
+test:
+  stage: test
   script:
   # apk add any needed packages not included in the image.
   # check-manifest, used in tox -e check, requires git,
@@ -74,9 +96,4 @@ pages:
   - start_tox=$(date +%s)
   - tox
   - echo "tox tests took $(( $(date +%s) - start_tox)) seconds"
-  - mv dist/docs/ public/
-  artifacts:
-    paths:
-    - public
-  only:
-  - master
+
