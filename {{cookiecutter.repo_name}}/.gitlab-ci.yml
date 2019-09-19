@@ -62,6 +62,9 @@ default:
 # sphinx-build -b linkcheck. So the pages will never get deployed...
 # That's why we deploy pages with no checks here.
 # The tests will still run linkcheck on the documentation.
+# Since "It may take up to 30 minutes before the site is available after the
+# first deployment." (per GitLab), the tests will still fail for a little
+# while.
 pages:
   stage: build
   # On GitLab, the stages are build->test->deploy.
