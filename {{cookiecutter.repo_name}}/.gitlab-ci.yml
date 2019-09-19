@@ -97,6 +97,11 @@ test:
   - uname --all
   - lsb_release --all || echo "lsb_release is not supported on this host."
   - start_tox=$(date +%s)
-  - tox
+  # When testing locally, we might not want to set sitepackages=true,
+  # because the local machine might have all kinds of weird things in the
+  # environment. But for continuous integration, we do want sitepackages=true,
+  # because it allows us to use a Docker image with some packages already
+  # installed to accelerate testing.
+  - tox --sitepackages
   - echo "tox tests took $(( $(date +%s) - start_tox)) seconds"
 
