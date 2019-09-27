@@ -20,6 +20,7 @@ variables:
 
 default:
   before_script:
+    - right_after_pull_docker_image=$(date +%s)
     - if [ -z ${SSH_PRIVATE_KEY+ABC} ]; then echo "SSH_PRIVATE_KEY is unset, so assuming you do not need SSH set up.";
       else
     # All of this will be skipped unless you set SSH_PRIVATE_KEY as a variable at https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/-/settings/ci_cd
@@ -105,4 +106,5 @@ test:
   # installed to accelerate testing.
   - tox --sitepackages
   - echo "tox tests took $(( $(date +%s) - start_tox)) seconds"
+  - echo "Everything after pulling the Docker image took $(( $(date +%s) - right_after_pull_docker_image)) seconds total"
 
