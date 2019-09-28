@@ -90,6 +90,9 @@ test:
   - pip install --upgrade pip
   # If using an image that does not include tox, we will
   # need to pip install tox here.
+  # With --sitepackages, we can save time by installing once
+  # for both regular tests and documentation checks.
+  - pip install .
   - git --version
   - python --version
   - python2 --version || echo "python2 is not installed."
