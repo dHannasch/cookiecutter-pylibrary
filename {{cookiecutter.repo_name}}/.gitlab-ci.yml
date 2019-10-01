@@ -20,13 +20,14 @@ variables:
 
 default:
   before_script:
+    - right_after_pull_docker_image=$(date +%s)
     - if [ -z ${SSH_PRIVATE_KEY+ABC} ]; then echo "SSH_PRIVATE_KEY is unset, so assuming you do not need SSH set up.";
       else
     # All of this will be skipped unless you set SSH_PRIVATE_KEY as a variable at https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/-/settings/ci_cd
     {% raw -%}
     - if [ ${#SSH_PRIVATE_KEY} -le 5 ]; then echo "SSH_PRIVATE_KEY looks far too short, something is wrong"; fi
     {%- endraw %}
-    - apk add openssh-client
+    - apk add openssh-client || apt-get install --assume-yes openssh-client
     - echo "adding openssh-client took $(( $(date +%s) - start_time)) seconds"
 
     # ssh-agent -s starts the ssh-agent and then outputs shell commands to run.
@@ -89,6 +90,9 @@ test:
   - pip install --upgrade pip
   # If using an image that does not include tox, we will
   # need to pip install tox here.
+  # With --sitepackages, we can save time by installing once
+  # for both regular tests and documentation checks.
+  - pip install .
   - git --version
   - python --version
   - python2 --version || echo "python2 is not installed."
@@ -105,4 +109,5 @@ test:
   # installed to accelerate testing.
   - tox --sitepackages
   - echo "tox tests took $(( $(date +%s) - start_tox)) seconds"
+  - echo "Everything after pulling the Docker image took $(( $(date +%s) - right_after_pull_docker_image)) seconds total"
 
