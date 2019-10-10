@@ -46,7 +46,7 @@ default:
     ## Create the SSH directory and give it the right permissions
     ##
     - mkdir --parents ~/.ssh
-    - ssh-keyscan -t rsa gitlab.sandia.gov >> ~/.ssh/known_hosts
+    - ssh-keyscan -t rsa {{ cookiecutter.repo_hosting_domain }} >> ~/.ssh/known_hosts
     - fi
 
     ##
