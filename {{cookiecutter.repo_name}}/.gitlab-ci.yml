@@ -28,7 +28,7 @@ default:
     - if [ ${#SSH_PRIVATE_KEY} -le 5 ]; then echo "SSH_PRIVATE_KEY looks far too short, something is wrong"; fi
     {%- endraw %}
     - apk add openssh-client || apt-get install --assume-yes openssh-client
-    - echo "adding openssh-client took $(( $(date +%s) - start_time)) seconds"
+    - echo "adding openssh-client took $(( $(date +%s) - right_after_pull_docker_image)) seconds"
 
     # ssh-agent -s starts the ssh-agent and then outputs shell commands to run.
     - eval $(ssh-agent -s)
@@ -46,7 +46,7 @@ default:
     ## Create the SSH directory and give it the right permissions
     ##
     - mkdir --parents ~/.ssh
-    - ssh-keyscan -t rsa gitlab.sandia.gov >> ~/.ssh/known_hosts
+    - ssh-keyscan -t rsa {{ cookiecutter.repo_hosting_domain }} >> ~/.ssh/known_hosts
     - fi
 
     ##
@@ -67,6 +67,8 @@ default:
 # first deployment." (per GitLab), the tests will still fail for a little
 # while.
 pages:
+  tags:
+  - docker
   stage: build
   # On GitLab, the stages are build->test->deploy.
   # If the test stage fails, the deploy stage is skipped.
@@ -81,6 +83,8 @@ pages:
   - master
 
 test:
+  tags:
+  - docker
   stage: test
   script:
   # apk add any needed packages not included in the image.
