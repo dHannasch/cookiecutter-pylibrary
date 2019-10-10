@@ -67,6 +67,8 @@ default:
 # first deployment." (per GitLab), the tests will still fail for a little
 # while.
 pages:
+  tags:
+  - docker
   stage: build
   # On GitLab, the stages are build->test->deploy.
   # If the test stage fails, the deploy stage is skipped.
@@ -81,6 +83,8 @@ pages:
   - master
 
 test:
+  tags:
+  - docker
   stage: test
   script:
   # apk add any needed packages not included in the image.
