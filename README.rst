@@ -83,10 +83,14 @@ First generate your project::
 
 You will be asked for these fields:
 
+.. note:: Fields that work together usually use the same prefix. If you answer "no" on the first one then the rest
+   won't have any effect so just ignore them. Maybe in the future cookiecutter will allow option hiding or something
+   like a wizard.
+
 .. list-table::
     :header-rows: 1
 
-    * - Template variable
+    * - Field
       - Default
       - Description
 
@@ -128,11 +132,11 @@ You will be asked for these fields:
             "Nameless"
       - Verbose project name, used in headings (docs, readme, etc).
 
-    * - ``repo_hosting``
+    * - ``repo_hosting_domain``
       - .. code:: python
 
-            "github"
-      - Use ``"no"`` for no hosting (various links will disappear). You can also use ``"gitlab"`` and such but various
+            "github.com"
+      - Use ``"no"`` for no hosting (various links will disappear). You can also use ``"gitlab.com"`` and such but various
         things will be broken (like Travis configuration).
 
     * - ``repo_name``
@@ -195,7 +199,15 @@ You will be asked for these fields:
 
             "no"
       - Make C extensions optional (will allow your package to install even if extensions can't be compiled)
+    * - ``c_extension_test_pypi``
+      - .. code:: python
 
+            "no"
+      - Enables wheel publishing to https://test.pypi.org/ by using `tox-wheel <https://pypi.org/project/tox-wheel/>`_
+        and `manylinux1 <https://hub.docker.com/r/ionelmc/manylinux>`_.
+
+        You should only use this with ``c_extension_support``. If your project produces universal wheels this won't work
+        well.
     * - ``test_matrix_configurator``
       - .. code:: python
 
@@ -218,10 +230,31 @@ You will be asked for these fields:
             "pytest"
       - Test runner to use. Available options: ``pytest`` or ``nose``.
 
+    * - ``setup_py_uses_test_runner``
+      - .. code:: python
+
+            "no"
+      - Whether to use the test_runner for python setup.py test.
+        Note that this will also add to ``setup_requires`` if a test-runner is needed.
+    * - ``setup_py_uses_setuptools_scm``
+      - .. code:: python
+
+            "no"
+      - Enables the use of `setuptools-scm <https://pypi.org/project/setuptools-scm/>`_. You can continue using
+        bumpversion_ with this enabled.
+
+        Recommended if you use ``c_extension_test_pypi == 'yes'`` as it will publish unique wheels for each commit.
+    * - ``allow_tests_inside_package``
+      - .. code:: python
+
+            "no"
+      - Collect tests that are inside the package (in other works, tests that are installed with the package).
+
+        The outside of package `tests` directory will still exist and be collected.
     * - ``linter``
       - .. code:: python
 
-	    "flake8"
+        "flake8"
       - Linter to use for ``tox -e check``. Available options: ``flake8`` or ``pylama``
 
     * - ``command_line_interface``
@@ -294,6 +327,12 @@ You will be asked for these fields:
             "no"
       - Add a CodeClimate_ badge in ``README.rst``.
 
+    * - ``sphinx_docs``
+      - .. code:: python
+
+            "yes"
+      - Have Sphinx documentation.
+
     * - ``sphinx_theme``
       - .. code:: python
 
@@ -313,12 +352,42 @@ You will be asked for these fields:
 
         Read more about `doctest support in Sphinx <http://www.sphinx-doc.org/en/stable/ext/doctest.html>`_.
 
+    * - ``sphinx_docs_hosting``
+      - .. code:: python
+
+            "repo_name.readthedocs.io"
+      - Leave as default if your documentation will be hosted on readthedocs.
+        If your documentation will be hosted elsewhere (such as GitHub Pages or GitLab Pages),
+        enter the top-level URL.
+
+    * - ``pypi_badge``
+      - .. code:: python
+
+            "yes"
+      - By default, this will insert links to your project's page on PyPI.org.
+        Note that if your package is not (yet) on PyPI, this will cause tox -e docs to fail.
+        If you choose "no", then these links will not be created.
+
+    * - ``pypi_disable_upload``
+      - .. code:: python
+
+            "no"
+      - If you specifically want to be sure your package will never be
+        accidentally uploaded to PyPI, you can pick "yes".
+
     * - ``travis``
       - .. code:: python
 
             "yes"
       - If you want the Travis-CI_ badge and configuration.
+    * - ``travis_osx``
+      - .. code:: python
 
+            "no"
+      - Enables OSX support in the Travis-CI_ configuration. To keep things simple and easy to understand only Brew
+        Python 2 and 3 will be used.
+
+        You probably want to enable this if you use ``c_extension_test_pypi == 'yes'``.
     * - ``appveyor``
       - .. code:: python
 
@@ -415,7 +484,6 @@ And then you can build the ``sdist``, and if possible, the ``bdist_wheel`` too::
 
 To make a release of the project on PyPI, assuming you got some distributions in ``dist/``, the most simple usage is::
 
-    twine register dist/*
     twine upload --skip-existing dist/*.whl dist/*.gz dist/*.zip
 
 In ZSH you can use this to upload everything in ``dist/`` that ain't a linux-specific wheel (you may need ``setopt extended_glob``)::

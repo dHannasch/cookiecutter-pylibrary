@@ -7,6 +7,9 @@ import io
 {% if cookiecutter.c_extension_support != 'no' -%}
 import os
 {% endif -%}
+{% if cookiecutter.repo_hosting_domain == "no" -%}
+import os.path
+{% endif -%}
 import re
 {% if cookiecutter.c_extension_support == 'cffi' -%}
 import sys
@@ -85,9 +88,23 @@ class optional_build_ext(build_ext):
 {% endif -%}
 setup(
     name='{{ cookiecutter.distribution_name }}',
+{%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
+    use_scm_version={
+        'local_scheme': 'dirty-tag',
+        'write_to': 'src/{{ cookiecutter.package_name }}/_version.py',
+        'fallback_version': '{{ cookiecutter.version }}',
+    },
+{%- else %}
     version='{{ cookiecutter.version }}',
+{%- endif %}
 {%- if cookiecutter.license != "no" %}
-    license='{{ cookiecutter.license }}',
+    license='{{ {
+        "BSD 2-Clause License": "BSD-2-Clause",
+        "BSD 3-Clause License": "BSD-3-Clause",
+        "MIT license": "MIT",
+        "ISC license": "ISC",
+        "Apache Software License 2.0": "Apache-2.0"}[cookiecutter.license]
+    }}',
 {%- endif %}
     description={{ '{0!r}'.format(cookiecutter.project_short_description).lstrip('ub') }},
     long_description='%s\n%s' % (
@@ -96,8 +113,10 @@ setup(
     ),
     author={{ '{0!r}'.format(cookiecutter.full_name).lstrip('ub') }},
     author_email={{ '{0!r}'.format(cookiecutter.email).lstrip('ub') }},
-{%- if cookiecutter.repo_hosting != "no" %}
-    url='https://{{ cookiecutter.repo_hosting }}.com/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}',
+{%- if cookiecutter.repo_hosting_domain == "no" %}
+    url='file://' + os.path.abspath(dirname(__file__)),
+{%- else %}
+    url='https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}',
 {%- endif %}
     packages=find_packages('src'),
     package_dir={'': 'src'},
@@ -124,7 +143,6 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -135,23 +153,25 @@ setup(
         # 'Programming Language :: Python :: Implementation :: Jython',
         # 'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Utilities',
+{%- if cookiecutter.pypi_disable_upload == "yes" %}
+        'Private :: Do Not Upload',
+{%- endif %}
     ],
-{%- if cookiecutter.repo_hosting != "no" %}
+{%- if cookiecutter.repo_hosting_domain != "no" %}
     project_urls={
 {%- if cookiecutter.sphinx_docs == "yes" %}
         'Documentation': 'https://{{ cookiecutter.repo_name|replace('.', '') }}.readthedocs.io/',
         'Changelog': 'https://{{ cookiecutter.repo_name|replace('.', '') }}.readthedocs.io/en/latest/changelog.html',
 {%- else %}
-        'Changelog': 'https://{{ cookiecutter.repo_hosting }}.com/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/blob/master/CHANGELOG.rst',
+        'Changelog': 'https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/blob/master/CHANGELOG.rst',
 {%- endif %}
-        'Issue Tracker': 'https://{{ cookiecutter.repo_hosting }}.com/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/issues',
+        'Issue Tracker': 'https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/issues',
     },
 {%- endif %}
-
     keywords=[
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=[
 {%- if cookiecutter.command_line_interface == 'click' %}
         'click',
@@ -166,11 +186,29 @@ setup(
         #   'rst': ['docutils>=0.11'],
         #   ':python_version=="2.6"': ['argparse'],
     },
+{%- set setup_requires_interior %}
+{%- if cookiecutter.test_runner == 'pytest' and cookiecutter.setup_py_uses_test_runner == 'yes' %}
+        'pytest-runner',{% endif %}
+{%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
+        'setuptools_scm>=3.3.1',{% endif %}
+{%- endset %}
 {%- if cookiecutter.c_extension_support == 'cython' %}
-    setup_requires=[
+    setup_requires=[{{ setup_requires_interior }}
         'cython',
-    ] if Cython else [],
-{%- endif %}
+    ] if Cython else [{{ setup_requires_interior }}
+    ],
+{%- elif cookiecutter.c_extension_support == 'cffi' %}
+    # We only require CFFI when compiling.
+    # pyproject.toml does not support requirements only for some build actions,
+    # but we can do it in setup.py.
+    setup_requires=[{{ setup_requires_interior }}
+        'cffi>=1.0.0',
+    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [{{setup_requires_interior}}
+    ],
+{%- elif setup_requires_interior.strip() %}
+    setup_requires=[{{ setup_requires_interior }}
+    ],
+{%- endif -%}
 {%- if cookiecutter.command_line_interface != 'no' %}
     entry_points={
         'console_scripts': [
@@ -183,9 +221,6 @@ setup(
     cmdclass={'build_ext': optional_build_ext},
 {%- endif %}
 {%- if cookiecutter.c_extension_support == 'cffi' %}
-    setup_requires=[
-        'cffi>=1.0.0',
-    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [],
     cffi_modules=[i + ':ffi' for i in glob('src/*/_*_build.py')],
 {%- else %}
     ext_modules=[

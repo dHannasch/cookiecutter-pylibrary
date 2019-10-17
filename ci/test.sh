@@ -1,7 +1,7 @@
-#!/bin/bash -eE
+#!/bin/bash -eux
 shopt -s xpg_echo
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
     echo Usage:
     echo    $0 env-name
     exit 1
@@ -25,16 +25,14 @@ cookiecutter --no-input --config-file=ci/envs/$1.cookiecutterrc .
 cd python-nameless
 git init .
 git add -A .
-git commit -m "initial."
+git commit -m "Initial."
 bumpversion patch
 bumpversion minor
 bumpversion major
 safe_sed 's/sphinx-build -b linkcheck/#/' tox.ini
-safe_sed 's/,py37,/,/' tox.ini
-safe_sed 's/py37,//' tox.ini
-safe_sed 's/py37-cover,//' tox.ini
-safe_sed 's/py37-nocov,//' tox.ini
-safe_sed 's/,pypy3}/}/' tox.ini
-safe_sed 's/pypy3-cover,//' tox.ini
-safe_sed 's/pypy3-nocov,//' tox.ini
-tox -l
+for name in py35 py36; do
+  for env in $name ${name}-cover ${name}-nocov; do
+    safe_sed "s/,$env,/,/" tox.ini
+    safe_sed "s/$env,/,/" tox.ini
+  done
+done
