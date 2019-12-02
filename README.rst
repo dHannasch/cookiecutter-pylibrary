@@ -83,10 +83,14 @@ First generate your project::
 
 You will be asked for these fields:
 
+.. note:: Fields that work together usually use the same prefix. If you answer "no" on the first one then the rest
+   won't have any effect so just ignore them. Maybe in the future cookiecutter will allow option hiding or something
+   like a wizard.
+
 .. list-table::
     :header-rows: 1
 
-    * - Template variable
+    * - Field
       - Default
       - Description
 
@@ -486,7 +490,6 @@ And then you can build the ``sdist``, and if possible, the ``bdist_wheel`` too::
 
 To make a release of the project on PyPI, assuming you got some distributions in ``dist/``, the most simple usage is::
 
-    twine register dist/*
     twine upload --skip-existing dist/*.whl dist/*.gz dist/*.zip
 
 In ZSH you can use this to upload everything in ``dist/`` that ain't a linux-specific wheel (you may need ``setopt extended_glob``)::
