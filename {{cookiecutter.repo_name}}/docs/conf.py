@@ -16,6 +16,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
+    'nbsphinx',
 ]
 source_suffix = '.rst'
 master_doc = 'index'
