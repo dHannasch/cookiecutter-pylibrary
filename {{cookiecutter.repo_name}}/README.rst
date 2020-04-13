@@ -133,6 +133,11 @@ You can also install the in-development version with::
     pip install git+ssh://git@{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}.git@master
 {%- endif %}
 
+To git clone and develop::
+
+    git clone git@{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}.git@master
+    git config --local include.path ../.gitconfig
+
 Documentation
 =============
 
