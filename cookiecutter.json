@@ -9,7 +9,7 @@
     "project_short_description": "An example package. Generated with cookiecutter-pylibrary.",
     "full_name": "Ionel Cristian Maries",
     "email": "contact@ionelmc.ro",
-    "website": "https://{{ repo_hosting_domain }}/{{ repo_username }}",
+    "website": "https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}",
     "release_date": "today",
     "year_from": [
         "2020",
