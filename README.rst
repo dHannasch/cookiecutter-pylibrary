@@ -2,7 +2,7 @@
 cookiecutter-pylibrary
 ======================
 
-Cookiecutter_ template for a Python python library. |travis| |appveyor| |requiresio|
+Cookiecutter_ template for a Python library. |travis| |appveyor| |requiresio|
 
 .. |travis| image:: http://img.shields.io/travis/ionelmc/cookiecutter-pylibrary/master.svg?style=flat&label=Travis
     :alt: Travis-CI Build Status
@@ -83,10 +83,14 @@ First generate your project::
 
 You will be asked for these fields:
 
+.. note:: Fields that work together usually use the same prefix. If you answer "no" on the first one then the rest
+   won't have any effect so just ignore them. Maybe in the future cookiecutter will allow option hiding or something
+   like a wizard.
+
 .. list-table::
     :header-rows: 1
 
-    * - Template variable
+    * - Field
       - Default
       - Description
 
@@ -252,7 +256,11 @@ You will be asked for these fields:
 
         "flake8"
       - Linter to use for ``tox -e check``. Available options: ``flake8`` or ``pylama``
+    * - ``pre_commit``
+      - .. code:: python
 
+        "no"
+      - Enable basic `pre-commit <https://pre-commit.com/>`_ configuration.
     * - ``command_line_interface``
       - .. code:: python
 
@@ -355,6 +363,21 @@ You will be asked for these fields:
       - Leave as default if your documentation will be hosted on readthedocs.
         If your documentation will be hosted elsewhere (such as GitHub Pages or GitLab Pages),
         enter the top-level URL.
+
+    * - ``pypi_badge``
+      - .. code:: python
+
+            "yes"
+      - By default, this will insert links to your project's page on PyPI.org.
+        Note that if your package is not (yet) on PyPI, this will cause tox -e docs to fail.
+        If you choose "no", then these links will not be created.
+
+    * - ``pypi_disable_upload``
+      - .. code:: python
+
+            "no"
+      - If you specifically want to be sure your package will never be
+        accidentally uploaded to PyPI, you can pick "yes".
 
     * - ``travis``
       - .. code:: python
@@ -465,7 +488,6 @@ And then you can build the ``sdist``, and if possible, the ``bdist_wheel`` too::
 
 To make a release of the project on PyPI, assuming you got some distributions in ``dist/``, the most simple usage is::
 
-    twine register dist/*
     twine upload --skip-existing dist/*.whl dist/*.gz dist/*.zip
 
 In ZSH you can use this to upload everything in ``dist/`` that ain't a linux-specific wheel (you may need ``setopt extended_glob``)::

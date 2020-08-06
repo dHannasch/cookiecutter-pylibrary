@@ -4,20 +4,26 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import io
-{% if cookiecutter.c_extension_support != 'no' -%}
+{%- if cookiecutter.c_extension_support in ['yes', 'cython'] %}
 import os
-{% endif -%}
+{%- if cookiecutter.c_extension_support == 'yes' %}
+import platform
+{%- endif -%}
+{%- endif -%}
+{%- if cookiecutter.repo_hosting_domain == "no" %}
+import os.path
+{%- endif %}
 import re
-{% if cookiecutter.c_extension_support == 'cffi' -%}
+{%- if cookiecutter.c_extension_support == 'cffi' %}
 import sys
-{% endif -%}
+{%- endif %}
 from glob import glob
 from os.path import basename
 from os.path import dirname
 from os.path import join
-{% if cookiecutter.c_extension_support not in ['no', 'cffi'] -%}
+{%- if cookiecutter.c_extension_support not in ['no', 'cffi'] %}
 from os.path import relpath
-{% endif -%}
+{%- endif %}
 from os.path import splitext
 
 {% if cookiecutter.c_extension_support not in ['no', 'cffi'] -%}
@@ -25,7 +31,7 @@ from setuptools import Extension
 {% endif -%}
 from setuptools import find_packages
 from setuptools import setup
-{%- if cookiecutter.c_extension_support != 'no' -%}
+{%- if cookiecutter.c_extension_support != 'no' %}
 {%- if cookiecutter.c_extension_optional == 'yes' %}
 from setuptools.command.build_ext import build_ext
 {%- endif %}
@@ -39,24 +45,28 @@ except ImportError:
     Cython = None
 {%- endif %}
 {%- endif %}
+{%- if cookiecutter.c_extension_support != 'no' %}
+{%- if cookiecutter.c_extension_support in ['yes', 'cython'] %}
 
-
-def read(*names, **kwargs):
-    with io.open(
-        join(dirname(__file__), *names),
-        encoding=kwargs.get('encoding', 'utf8')
-    ) as fh:
-        return fh.read()
-
-
-{% if cookiecutter.c_extension_support != 'no' -%}
 # Enable code coverage for C code: we can't use CFLAGS=-coverage in tox.ini, since that may mess with compiling
 # dependencies (e.g. numpy). Therefore we set SETUPPY_CFLAGS=-coverage in tox.ini and copy it to CFLAGS here (after
 # deps have been safely installed).
-if 'TOXENV' in os.environ and 'SETUPPY_CFLAGS' in os.environ:
-    os.environ['CFLAGS'] = os.environ['SETUPPY_CFLAGS']
+if 'TOX_ENV_NAME' in os.environ and os.environ.get('SETUP_PY_EXT_COVERAGE') == 'yes'
+{%- if cookiecutter.c_extension_support == 'yes' %} and platform.system() == 'Linux'{% endif %}:
+{%- if cookiecutter.c_extension_support == 'cython' %}
+    CFLAGS = os.environ['CFLAGS'] = '-DCYTHON_TRACE=1'
+    LFLAGS = os.environ['LFLAGS'] = ''
+{%- elif cookiecutter.c_extension_support == 'yes' %}
+    CFLAGS = os.environ['CFLAGS'] = '-fprofile-arcs -ftest-coverage'
+    LFLAGS = os.environ['LFLAGS'] = '-lgcov'
+{%- endif %}
+else:
+    CFLAGS = ''
+    LFLAGS = ''
+{%- endif %}
+{%- if cookiecutter.c_extension_optional == 'yes' %}
 
-{% if cookiecutter.c_extension_optional == 'yes' %}
+
 class optional_build_ext(build_ext):
     """Allow the building of C extensions to fail."""
     def run(self):
@@ -79,10 +89,18 @@ class optional_build_ext(build_ext):
         print('')
         print('    ' + repr(e))
         print('*' * 80)
+{%- endif %}
+{%- endif %}
 
 
-{% endif -%}
-{% endif -%}
+def read(*names, **kwargs):
+    with io.open(
+        join(dirname(__file__), *names),
+        encoding=kwargs.get('encoding', 'utf8')
+    ) as fh:
+        return fh.read()
+
+
 setup(
     name='{{ cookiecutter.distribution_name }}',
 {%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
@@ -100,7 +118,12 @@ setup(
         "BSD 3-Clause License": "BSD-3-Clause",
         "MIT license": "MIT",
         "ISC license": "ISC",
-        "Apache Software License 2.0": "Apache-2.0"}[cookiecutter.license]
+        "Apache Software License 2.0": "Apache-2.0",
+        "GNU Lesser General Public License v3 or later (LGPLv3+)": "LGPL-3.0-or-later",
+        "GNU Lesser General Public License v3 (LGPLv3)": "LGPL-3.0-only",
+        "GNU Lesser General Public License v2.1 or later (LGPLv2+)": "LGPL-2.1-or-later",
+        "GNU Lesser General Public License v2.1 (LGPLv2)": "LGPL-2.1-only",
+      }[cookiecutter.license]
     }}',
 {%- endif %}
     description={{ '{0!r}'.format(cookiecutter.project_short_description).lstrip('ub') }},
@@ -110,7 +133,9 @@ setup(
     ),
     author={{ '{0!r}'.format(cookiecutter.full_name).lstrip('ub') }},
     author_email={{ '{0!r}'.format(cookiecutter.email).lstrip('ub') }},
-{%- if cookiecutter.repo_hosting_domain != "no" %}
+{%- if cookiecutter.repo_hosting_domain == "no" %}
+    url='file://' + os.path.abspath(dirname(__file__)),
+{%- else %}
     url='https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}',
 {%- endif %}
     packages=find_packages('src'),
@@ -131,6 +156,14 @@ setup(
         'License :: OSI Approved :: ISC License (ISCL)',
 {%- elif cookiecutter.license == "Apache Software License 2.0" %}
         'License :: OSI Approved :: Apache Software License',
+{%- elif 'LGPLv3+' in cookiecutter.license %}
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)'
+{%- elif 'LGPLv3' in cookiecutter.license %}
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)'
+{%- elif 'LGPLv2' in cookiecutter.license %}
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)'
+{%- elif 'LGPLv2' in cookiecutter.license %}
+        'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)'
 {%- endif %}
         'Operating System :: Unix',
         'Operating System :: POSIX',
@@ -138,10 +171,10 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         # uncomment if you test on these interpreters:
@@ -149,15 +182,15 @@ setup(
         # 'Programming Language :: Python :: Implementation :: Jython',
         # 'Programming Language :: Python :: Implementation :: Stackless',
         'Topic :: Utilities',
-{%- if cookiecutter.repo_hosting_domain == "no" %}
+{%- if cookiecutter.pypi_disable_upload == "yes" %}
         'Private :: Do Not Upload',
 {%- endif %}
     ],
 {%- if cookiecutter.repo_hosting_domain != "no" %}
     project_urls={
 {%- if cookiecutter.sphinx_docs == "yes" %}
-        'Documentation': 'https://{{ cookiecutter.repo_name|replace('.', '') }}.readthedocs.io/',
-        'Changelog': 'https://{{ cookiecutter.repo_name|replace('.', '') }}.readthedocs.io/en/latest/changelog.html',
+        'Documentation': '{{ cookiecutter.sphinx_docs_hosting }}',
+        'Changelog': '{{ cookiecutter.sphinx_docs_hosting }}en/latest/changelog.html',
 {%- else %}
         'Changelog': 'https://{{ cookiecutter.repo_hosting_domain }}/{{ cookiecutter.repo_username }}/{{ cookiecutter.repo_name }}/blob/master/CHANGELOG.rst',
 {%- endif %}
@@ -167,7 +200,7 @@ setup(
     keywords=[
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=[
 {%- if cookiecutter.command_line_interface == 'click' %}
         'click',
@@ -182,24 +215,27 @@ setup(
         #   'rst': ['docutils>=0.11'],
         #   ':python_version=="2.6"': ['argparse'],
     },
-{%- if cookiecutter.test_runner == 'pytest' and cookiecutter.setup_py_uses_test_runner == 'yes' -%}
-{% set setup_requires_from_test_runner %}
-        'pytest-runner',{% endset %}
-{%- else -%}
-{% set setup_requires_from_test_runner %}{% endset %}
-{%- endif -%}
+{%- set setup_requires_interior %}
+{%- if cookiecutter.test_runner == 'pytest' and cookiecutter.setup_py_uses_test_runner == 'yes' %}
+        'pytest-runner',{% endif %}
+{%- if cookiecutter.setup_py_uses_setuptools_scm == 'yes' %}
+        'setuptools_scm>=3.3.1',{% endif %}
+{%- endset %}
 {%- if cookiecutter.c_extension_support == 'cython' %}
-    setup_requires=[{{ setup_requires_from_test_runner }}
+    setup_requires=[{{ setup_requires_interior }}
         'cython',
-    ] if Cython else [{{ setup_requires_from_test_runner }}
+    ] if Cython else [{{ setup_requires_interior }}
     ],
 {%- elif cookiecutter.c_extension_support == 'cffi' %}
-    setup_requires=[{{ setup_requires_from_test_runner }}
+    # We only require CFFI when compiling.
+    # pyproject.toml does not support requirements only for some build actions,
+    # but we can do it in setup.py.
+    setup_requires=[{{ setup_requires_interior }}
         'cffi>=1.0.0',
-    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [{{setup_requires_from_test_runner}}
+    ] if any(i.startswith('build') or i.startswith('bdist') for i in sys.argv) else [{{setup_requires_interior}}
     ],
-{%- else %}
-    setup_requires=[{{ setup_requires_from_test_runner }}
+{%- elif setup_requires_interior.strip() %}
+    setup_requires=[{{ setup_requires_interior }}
     ],
 {%- endif -%}
 {%- if cookiecutter.command_line_interface != 'no' %}
@@ -220,6 +256,10 @@ setup(
         Extension(
             splitext(relpath(path, 'src').replace(os.sep, '.'))[0],
             sources=[path],
+{%- if cookiecutter.c_extension_support in ['yes', 'cython'] %}
+            extra_compile_args=CFLAGS.split(),
+            extra_link_args=LFLAGS.split(),
+{%- endif %}
             include_dirs=[dirname(path)]
         )
         for root, _, _ in os.walk('src')

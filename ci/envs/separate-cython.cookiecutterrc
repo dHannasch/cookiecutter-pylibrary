@@ -1,6 +1,6 @@
 default_context:
   c_extension_optional: 'yes'
-  c_extension_support: 'yes'
+  c_extension_support: cython
   c_extension_test_pypi: 'no'
   c_extension_test_pypi_appveyor_secret: fDwCnDhQiptm9a4ZcFpgyQ==
   c_extension_test_pypi_username: ionel
