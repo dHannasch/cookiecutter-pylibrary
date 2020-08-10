@@ -7,10 +7,14 @@
 # This is just a tiny starting point that assembles a script file to be run in each Dockerfile.
 
 import os.path
+
 import yaml
 
 if __name__ == "__main__":
-    yml = yaml.safe_load(open('.before_script.yml'))
-    with open(os.path.join('dockerfiles', 'before_script.sh'), 'w') as scriptFile:
-        for line in yml['default']['before_script']:
-            print(line, file=scriptFile)
+    if os.path.exists('.before_script.yml'):
+        yml = yaml.safe_load(open('.before_script.yml'))
+        with open(os.path.join('dockerfiles', 'before_script.sh'), 'w') as scriptFile:
+            for line in yml['default']['before_script']:
+                print(line, file=scriptFile)
+    else:
+        print('assembler.py does not find any .before_script.yml.')
